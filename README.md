@@ -114,4 +114,51 @@ The workflow itself was manually configured, tested, debugged, and validated in 
 - Error handling
 - Production testing
 
+
+
+## Architecture
+
+The automation follows a layered workflow designed to validate, protect, process, qualify, and respond to client inquiries while minimizing unnecessary AI usage.
+
+![Workflow Architecture](assets/workflow-architecture.png)
+
+### High-Level Flow
+
+```text
+Client / Website Form
+        ↓
+Webhook Intake
+        ↓
+Normalize Data
+        ↓
+Validate Submission
+   ┌───────────────┴───────────────┐
+ Invalid                         Valid
+    ↓                              ↓
+Log Invalid                  Add Metadata
+Submission                        ↓
+    ↓                        Duplicate Check
+HTTP 400                  ┌───────┴────────┐
+                      Duplicate          New Lead
+                          ↓                  ↓
+                      HTTP 200         AI Extraction
+                                             ↓
+                                      Build Lead Record
+                                             ↓
+                                      Calculate Lead Score
+                                             ↓
+                                      Google Sheets
+                                      ↙            ↘
+                                HTTP 202        AI Reply
+                                                  ↓
+                                             Client Email
+                                                  ↓
+                                          Lead Quality Routing
+                                      ┌────────┼────────┐
+                                     Hot      Warm      Cold
+                                      ↓         ↓         ↓
+                                 Priority    Wait     Nurture
+                                   Alert     1 Day      Queue
+                                               ↓
+                                            Reminder
 AI is also intentionally used **inside the finished automation** for information extraction and personalized response generation, while critical business decisions such as lead scoring and routing remain rule-based and explainable.
