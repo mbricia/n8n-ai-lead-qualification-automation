@@ -235,7 +235,10 @@ AI is also intentionally used **inside the finished automation** for information
 - [Project case study](docs/CASE-STUDY.md)
 - [Portfolio / CV copy](docs/PORTFOLIO-COPY.md)
 - [Interview talking points](docs/INTERVIEW-NOTES.md)
+- [Setup / recreation guide](docs/SETUP.md)
 - [Workflow export notes](workflows/README.md)
+- [Synthetic test payloads](sample-data/test-payloads.json)
+- [PowerShell webhook test helper](sample-data/test-webhook.ps1)
 
 ## Current Status
 
