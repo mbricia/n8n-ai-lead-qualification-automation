@@ -1,0 +1,79 @@
+{
+  "name": "AI Lead Qualification | Error Handler",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "8ad930b8-e35e-43f0-8211-047623fadc96",
+      "name": "[ERROR] Catch Workflow Failure"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const data = $json;\n\nconst execution = data.execution || {};\nconst trigger = data.trigger || {};\nconst error = execution.error || trigger.error || {};\n\nconst workflowName = data.workflow?.name || 'Unknown Workflow';\nconst workflowId = data.workflow?.id || 'Unknown';\n\nconst executionId = execution.id || '';\nconst executionUrl = execution.url || '';\n\nconst failedNode =\n  execution.lastNodeExecuted ||\n  error.node?.name ||\n  'Unknown Node';\n\nconst errorMessage =\n  error.message ||\n  error.cause?.message ||\n  'Unknown error';\n\nconst errorStack =\n  error.stack ||\n  error.cause?.stack ||\n  '';\n\nconst failureMode =\n  execution.mode ||\n  trigger.mode ||\n  'unknown';\n\nlet failedAt = new Date().toISOString();\n\nif (error.timestamp) {\n  failedAt = new Date(error.timestamp).toISOString();\n}\n\nreturn {\n  json: {\n    workflow_name: workflowName,\n    workflow_id: workflowId,\n    execution_id: executionId,\n    execution_url: executionUrl,\n    failed_node: failedNode,\n    error_message: errorMessage,\n    error_stack: errorStack,\n    failure_mode: failureMode,\n    failed_at: failedAt\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        0
+      ],
+      "id": "7ddc1dc9-6917-41e5-b5ad-df1d39096076",
+      "name": "[DATA] Build Error Alert"
+    },
+    {
+      "parameters": {
+        "sendTo": "owner@example.com",
+        "subject": "=🚨 WORKFLOW ERROR: {{ $json.failed_node }}",
+        "emailType": "text",
+        "message": "=🚨 AUTOMATION FAILURE ALERT  Workflow: {{ $json.workflow_name }}  Failed Node: {{ $json.failed_node }}  Error: {{ $json.error_message }}  Execution ID: {{ $json.execution_id }}  Failure Mode: {{ $json.failure_mode }}  Failed At: {{ $json.failed_at }}  Execution Link: {{ $json.execution_url }}  Recommended Action: Open the failed execution, review the error details, and retry the workflow after resolving the issue.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        448,
+        0
+      ],
+      "id": "91214012-fdd8-4e55-b8a7-b2bdebedb974",
+      "name": "[NOTIFY] Send Workflow Failure Alert"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "[ERROR] Catch Workflow Failure": {
+      "main": [
+        [
+          {
+            "node": "[DATA] Build Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[DATA] Build Error Alert": {
+      "main": [
+        [
+          {
+            "node": "[NOTIFY] Send Workflow Failure Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "nodeGroups": [],
+  "tags": []
+}
