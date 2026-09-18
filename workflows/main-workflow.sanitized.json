@@ -1,0 +1,1515 @@
+{
+  "name": "AI Lead Qualification | Client Inquiry Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "client-inquiry",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        96
+      ],
+      "id": "a021f05c-e25f-44ac-beb7-691307ee2c0a",
+      "name": "[TRIGGER] Receive Client Inquiry"
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.inquiry_message }}",
+        "attributes": {
+          "attributes": [
+            {
+              "name": "project_type",
+              "description": "The main type of project the client is requesting. Use a short clear category such as Website Development, AI Automation, E-commerce, Mobile App, Design, or Other."
+            },
+            {
+              "name": "budget_amount",
+              "type": "number",
+              "description": "The client's stated budget as a number only. Do not include currency symbols or commas. If no budget is provided, leave it unknown or null."
+            },
+            {
+              "name": "budget_currency",
+              "description": "The currency of the stated budget, such as USD, PHP, EUR, GBP. If the currency is not stated, return Unknown."
+            },
+            {
+              "name": "deadline",
+              "description": "The client's requested deadline or project timeline exactly as understood from the inquiry. If none is provided, return Unknown."
+            },
+            {
+              "name": "requirements",
+              "description": "A concise summary of the main features, deliverables, or requirements requested by the client. Separate multiple requirements clearly."
+            },
+            {
+              "name": "urgency",
+              "description": "Classify the project urgency as High, Medium, Low, or Unknown based only on the stated deadline or explicit urgency in the inquiry. Do not invent urgency if it is unclear."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.informationExtractor",
+      "typeVersion": 1.2,
+      "position": [
+        1568,
+        96
+      ],
+      "id": "bda7a6a2-e66a-4619-a5ba-30b3e34e7050",
+      "name": "[AI] Extract Inquiry Details",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini",
+          "cachedResultName": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1648,
+        320
+      ],
+      "id": "eeace532-b626-418f-9d29-88024f7e464a",
+      "name": "[MODEL] GPT-5 Mini"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "878eaa8a-40f6-469a-a84c-b0b6d70e5814",
+              "name": "client_name",
+              "value": "={{ $('[DATA] Normalize Inquiry').item.json.client_name }}",
+              "type": "string"
+            },
+            {
+              "id": "8148f860-b61b-4eb3-be64-b607d8a60509",
+              "name": "client_email",
+              "value": "={{ $('[DATA] Normalize Inquiry').item.json.client_email }}",
+              "type": "string"
+            },
+            {
+              "id": "1710efe0-58a9-4160-9173-8ae66bd0e7b4",
+              "name": "company_name",
+              "value": "={{ $('[DATA] Normalize Inquiry').item.json.company_name }}",
+              "type": "string"
+            },
+            {
+              "id": "0177b9ca-04f2-48f0-9650-e6c15e58149b",
+              "name": "inquiry_message",
+              "value": "={{ $('[DATA] Normalize Inquiry').item.json.inquiry_message }}",
+              "type": "string"
+            },
+            {
+              "id": "b35c0b62-8f1d-4e36-ac83-81680be667dc",
+              "name": "project_type",
+              "value": "={{ $json.output.project_type }}",
+              "type": "string"
+            },
+            {
+              "id": "864c1c76-9e8e-459d-8732-1fd416a8d06e",
+              "name": "budget_amount",
+              "value": "={{ $json.output.budget_amount }}",
+              "type": "number"
+            },
+            {
+              "id": "3f90b00a-7259-4e62-9428-b5687fb5ce70",
+              "name": "budget_currency",
+              "value": "={{ $json.output.budget_currency }}",
+              "type": "string"
+            },
+            {
+              "id": "a46ea497-41f1-46fd-aea5-5c2085e74d8d",
+              "name": "deadline",
+              "value": "={{ $json.output.deadline }}",
+              "type": "string"
+            },
+            {
+              "id": "f5bc6671-daf9-4f70-9d88-c8dfbdce7aa7",
+              "name": "requirements",
+              "value": "={{ $json.output.requirements }}",
+              "type": "string"
+            },
+            {
+              "id": "91414941-ee42-4275-b65b-a08930c404ec",
+              "name": "urgency",
+              "value": "={{ $json.output.urgency }}",
+              "type": "string"
+            },
+            {
+              "id": "90353a2f-dbfb-4f09-9ef3-5205a499aaa6",
+              "name": "lead_id",
+              "value": "={{ $('[DATA] Add Intake Metadata').item.json.lead_id }}",
+              "type": "string"
+            },
+            {
+              "id": "8968f2d8-93b6-411f-b4b1-a55fc4d29098",
+              "name": "received_at",
+              "value": "={{ $('[DATA] Add Intake Metadata').item.json.received_at }}",
+              "type": "string"
+            },
+            {
+              "id": "abc134fa-8700-4675-9100-34272b84a6c8",
+              "name": "dedupe_key",
+              "value": "={{ $('[DATA] Add Intake Metadata').item.json.dedupe_key }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1920,
+        96
+      ],
+      "id": "3a58edb6-1d16-4b0d-8787-badf55b45a3b",
+      "name": "[DATA] Build Lead Record"
+    },
+    {
+      "parameters": {
+        "jsCode": "const lead = $('[DATA] Build Lead Record').first().json;\n\nlet score = 0;\nconst reasons = [];\n\n// 1. Required contact information — 10 points\nif (\n  lead.client_name &&\n  lead.client_email &&\n  lead.inquiry_message\n) {\n  score += 10;\n  reasons.push('Complete contact information');\n}\n\n// 2. Clear project type — 25 points\nconst projectType = String(lead.project_type || '').toLowerCase();\n\nif (\n  projectType &&\n  projectType !== 'unknown' &&\n  projectType !== 'other'\n) {\n  score += 25;\n  reasons.push('Clear project type');\n}\n\n// 3. Budget information — 25 points total\nconst budgetAmount = Number(lead.budget_amount);\nconst budgetCurrency = String(lead.budget_currency || '').toUpperCase();\n\nif (Number.isFinite(budgetAmount) && budgetAmount > 0) {\n  score += 15;\n  reasons.push('Budget amount provided');\n}\n\nif (\n  budgetCurrency &&\n  budgetCurrency !== 'UNKNOWN'\n) {\n  score += 10;\n  reasons.push('Budget currency provided');\n}\n\n// 4. Deadline / timeline — 20 points\nconst deadline = String(lead.deadline || '').toLowerCase();\n\nif (deadline && deadline !== 'unknown') {\n  score += 20;\n  reasons.push('Project timeline provided');\n}\n\n// 5. Requirements clarity — 20 points\nconst requirements = String(lead.requirements || '').trim();\n\nif (\n  requirements &&\n  requirements.toLowerCase() !== 'unknown'\n) {\n  if (requirements.length >= 40) {\n    score += 20;\n    reasons.push('Detailed project requirements');\n  } else {\n    score += 10;\n    reasons.push('Basic project requirements');\n  }\n}\n\n// Lead classification\nlet leadQuality;\n\nif (score >= 80) {\n  leadQuality = 'Hot';\n} else if (score >= 50) {\n  leadQuality = 'Warm';\n} else {\n  leadQuality = 'Cold';\n}\n\nreturn {\n  json: {\n    ...lead,\n    lead_score: score,\n    lead_quality: leadQuality,\n    score_reasons: reasons\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2144,
+        96
+      ],
+      "id": "e0d4038f-e4a0-4932-956c-46868b05bec6",
+      "name": "[LOGIC] Calculate Lead Score"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a professional client intake assistant for a digital services business.\n\nWrite a concise, friendly, and professional email reply to the client based only on the information provided below.\n\nClient name: {{ $json.client_name }}\nCompany: {{ $json.company_name }}\nProject type: {{ $json.project_type }}\nRequirements: {{ $json.requirements }}\nBudget: {{ $json.budget_amount }} {{ $json.budget_currency }}\nTimeline: {{ $json.deadline }}\nLead quality: {{ $json.lead_quality }}\n\nInstructions:\n- Thank the client for reaching out.\n- Mention their project naturally so the reply feels personalized.\n- Do not promise pricing, availability, or a delivery date.\n- Do not invent any information.\n- If the lead quality is Hot, show strong interest and suggest scheduling a short discovery call.\n- If the lead quality is Warm, acknowledge the project and suggest discussing the requirements further.\n- If the lead quality is Cold, politely acknowledge the inquiry and say the details will be reviewed.\n- Keep the email between 80 and 130 words.\n- Do not include a subject line.\n- Do not use placeholders.\n- End with \"Best regards,\"",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        2592,
+        -160
+      ],
+      "id": "95d0743f-6c32-444b-8124-c9cd6bde1454",
+      "name": "[AI] Generate Client Reply",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        2672,
+        80
+      ],
+      "id": "1fd5077a-a531-4dfe-ba09-614c5b8673ff",
+      "name": "[MODEL] GPT-5 Mini - Reply"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a4817d95-4e63-4997-a8cc-1ed41c9eb5aa",
+              "name": "client_name",
+              "value": "={{ $('[LOGIC] Calculate Lead Score').item.json.client_name }}",
+              "type": "string"
+            },
+            {
+              "id": "1d29a8e9-4e66-455b-866b-a38492c678b3",
+              "name": "client_email",
+              "value": "={{ $('[LOGIC] Calculate Lead Score').item.json.client_email }}",
+              "type": "string"
+            },
+            {
+              "id": "e762948f-d0c7-4614-ac09-98b2eefb573c",
+              "name": "company_name",
+              "value": "={{ $('[LOGIC] Calculate Lead Score').item.json.company_name }}",
+              "type": "string"
+            },
+            {
+              "id": "ad735343-e9a1-456b-8db9-fd0b0ea9d308",
+              "name": "project_type",
+              "value": "={{ $('[LOGIC] Calculate Lead Score').item.json.project_type }}",
+              "type": "string"
+            },
+            {
+              "id": "3d8b4762-312e-40e3-b4b7-e9094f650489",
+              "name": "budget_amount",
+              "value": "={{ $('[LOGIC] Calculate Lead Score').item.json.budget_amount }}",
+              "type": "number"
+            },
+            {
+              "id": "887bb09f-1e5e-498f-9f69-591f694a361a",
+              "name": "budget_currency",
+              "value": "={{ $('[LOGIC] Calculate Lead Score').item.json.budget_currency }}",
+              "type": "string"
+            },
+            {
+              "id": "f84bc2ea-5252-4b4f-962f-358e57de7759",
+              "name": "deadline",
+              "value": "={{ $('[LOGIC] Calculate Lead Score').item.json.deadline }}",
+              "type": "string"
+            },
+            {
+              "id": "007d3957-b664-4572-8ec5-225a86892cdb",
+              "name": "requirements",
+              "value": "={{ $('[LOGIC] Calculate Lead Score').item.json.requirements }}",
+              "type": "string"
+            },
+            {
+              "id": "7b7610c8-2bf5-43a0-9214-d25d6c28ba75",
+              "name": "urgency",
+              "value": "={{ $('[LOGIC] Calculate Lead Score').item.json.urgency }}",
+              "type": "string"
+            },
+            {
+              "id": "3c7e0ab6-13fd-4a22-b9ef-d63e825ab8c7",
+              "name": "lead_score",
+              "value": "={{ $('[LOGIC] Calculate Lead Score').item.json.lead_score }}",
+              "type": "number"
+            },
+            {
+              "id": "596d0945-d2f4-42dc-b45d-c7658d604643",
+              "name": "lead_quality",
+              "value": "={{ $('[LOGIC] Calculate Lead Score').item.json.lead_quality }}",
+              "type": "string"
+            },
+            {
+              "id": "c60bfe22-6ef4-41eb-a956-306d0540fd5a",
+              "name": "generated_reply",
+              "value": "={{ $json.text }}",
+              "type": "string"
+            },
+            {
+              "id": "07ece461-0ec5-4847-ba33-546d57127b77",
+              "name": "inquiry_message",
+              "value": "={{ $('[LOGIC] Calculate Lead Score').item.json.inquiry_message }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        2944,
+        -48
+      ],
+      "id": "577d9635-6cd8-4388-af70-845e6757632c",
+      "name": "[DATA] Build Response Record"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.client_email }}",
+        "subject": "=Re: Your {{ $json.project_type }} Inquiry",
+        "emailType": "text",
+        "message": "={{ $json.generated_reply }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        3168,
+        -160
+      ],
+      "id": "d25f4dce-93c6-44b4-b001-b7a1c8afd83d",
+      "name": "[EMAIL] Send Client Reply"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_GOOGLE_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "AI Lead Qualification Database"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "REPLACE_WITH_LEADS_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "Leads"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "dedupe_key",
+              "lookupValue": "={{ $json.dedupe_key }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        896,
+        0
+      ],
+      "id": "6f512697-7332-4f01-924b-4d65cd423294",
+      "name": "[STORAGE] Check Existing Lead",
+      "alwaysOutputData": true,
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cc13c51a-84ac-4539-9434-57ca5c1cfcea",
+              "name": "lead_id",
+              "value": "={{ 'LEAD-' + $execution.id }}",
+              "type": "string"
+            },
+            {
+              "id": "ea892018-9284-4db7-b83d-f9c7d0681dd4",
+              "name": "received_at",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            },
+            {
+              "id": "2cb99f5e-8927-4840-897e-4e0008df4ce2",
+              "name": "dedupe_key",
+              "value": "={{ ($json.client_email || '').trim().toLowerCase() + '|' + ($json.inquiry_message || '').trim().toLowerCase().replace(/\\s+/g, ' ') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        672,
+        0
+      ],
+      "id": "e4333c01-6ae8-4cdd-be01-6d8689af9dbb",
+      "name": "[DATA] Add Intake Metadata"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const intake = $('[DATA] Add Intake Metadata').first().json;\n\nreturn {\n  json: intake\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1344,
+        96
+      ],
+      "id": "8ee56622-86ba-4dba-a83b-95392bf8fc26",
+      "name": "[DATA] Restore Intake Record"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_GOOGLE_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "AI Lead Qualification Database"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "REPLACE_WITH_INVALID_SUBMISSIONS_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "Invalid Submissions"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "rejected_at": "={{ $json.rejected_at }}",
+            "client_name": "={{ $json.client_name }}",
+            "client_email": "={{ $json.client_email }}",
+            "company_name": "={{ $json.company_name }}",
+            "inquiry_message": "={{ $json.inquiry_message }}",
+            "validation_status": "={{ $json.validation_status }}",
+            "missing_fields": "={{ $json.missing_fields.join(' | ') }}",
+            "validation_reason": "={{ $json.validation_reason }}",
+            "validation_issues": "={{ $json.validation_issues.join(' | ') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "rejected_at",
+              "displayName": "rejected_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "client_name",
+              "displayName": "client_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "client_email",
+              "displayName": "client_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "company_name",
+              "displayName": "company_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "inquiry_message",
+              "displayName": "inquiry_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "validation_status",
+              "displayName": "validation_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "missing_fields",
+              "displayName": "missing_fields",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "validation_reason",
+              "displayName": "validation_reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "validation_issues",
+              "displayName": "validation_issues",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        896,
+        192
+      ],
+      "id": "cd094515-ead8-4d71-ba34-f32be6f4e209",
+      "name": "[STORAGE] Log Invalid Submission"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{\n  {\n    success: false,\n    status: \"invalid\",\n    message: $json.validation_reason,\n    missing_fields: $json.missing_fields\n  }\n}}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1120,
+        192
+      ],
+      "id": "840842e4-8d18-4bc6-86fd-f0a9c1a8f2d0",
+      "name": "[RESPONSE] Invalid Submission"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{\n  {\n    success: true,\n    status: \"duplicate\",\n    message: \"This inquiry has already been received.\",\n    lead_id: $json.lead_id\n  }\n}}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1344,
+        -96
+      ],
+      "id": "1903304f-a3b1-40a6-82e1-8988de5e6a8b",
+      "name": "[RESPONSE] Duplicate Submission"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{\n  {\n    success: true,\n    status: \"accepted\",\n    message: \"Your inquiry has been received successfully.\",\n    lead_id: $('[LOGIC] Calculate Lead Score').item.json.lead_id\n  }\n}}",
+        "options": {
+          "responseCode": 202
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2656,
+        240
+      ],
+      "id": "3aedc908-4aff-4d2d-83e5-cb198b2e4060",
+      "name": "[RESPONSE] Lead Accepted"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7bd6e3f5-3a03-47ab-a316-683889127f35",
+              "name": "client_name",
+              "value": "={{ $json.body.client_name }}",
+              "type": "string"
+            },
+            {
+              "id": "a8955dfe-a228-4311-9a48-65f7fd22716e",
+              "name": "client_email",
+              "value": "={{ $json.body.client_email }}",
+              "type": "string"
+            },
+            {
+              "id": "2671ce44-5dcf-45ff-8569-c42be74e7389",
+              "name": "company_name",
+              "value": "={{ $json.body.company_name }}",
+              "type": "string"
+            },
+            {
+              "id": "ed158dd0-7908-4ec7-9d07-23613e96a14c",
+              "name": "inquiry_message",
+              "value": "={{ $json.body.inquiry_message }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        224,
+        96
+      ],
+      "id": "176243a9-f7f9-4e46-b45f-cc9b39034e74",
+      "name": "[DATA] Normalize Inquiry"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0499f077-dffb-411e-9db1-b6e545155f5a",
+              "leftValue": "={{ $json.client_name }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "0bd9968e-2e90-4a2f-80a1-cc6b552ae366",
+              "leftValue": "={{ $json.client_email }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "d2cc361e-65ed-4062-9b0a-1a9a51e9fa64",
+              "leftValue": "={{ $json.inquiry_message }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "d4a72dc7-184e-436a-99f1-ae0b1c65b0f4",
+              "leftValue": "={{ $json.client_email }}",
+              "rightValue": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
+              "operator": {
+                "type": "string",
+                "operation": "regex"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        448,
+        96
+      ],
+      "id": "c99a433b-2f9b-480b-9b1c-b815a8c483de",
+      "name": "[VALIDATE]Required Fields"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "2cb98f03-2191-495f-9243-10cecaef04a5",
+              "leftValue": "={{ $json.lead_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1120,
+        0
+      ],
+      "id": "da6d71bf-b6c2-4836-a7fa-e71d1baac264",
+      "name": "[VALIDATE] Duplicate Lead?"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const data = $json;\n\nconst missingFields = [];\nconst validationIssues = [];\n\n// Check required fields\nif (!String(data.client_name || '').trim()) {\n  missingFields.push('client_name');\n}\n\nif (!String(data.client_email || '').trim()) {\n  missingFields.push('client_email');\n}\n\nif (!String(data.inquiry_message || '').trim()) {\n  missingFields.push('inquiry_message');\n}\n\n// Check email format only if an email was provided\nconst email = String(data.client_email || '').trim();\nconst emailPattern = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;\n\nif (email && !emailPattern.test(email)) {\n  validationIssues.push('Invalid email format');\n}\n\n// Build readable validation reason\nlet validationReason = '';\n\nif (missingFields.length > 0) {\n  validationReason = `Missing required field(s): ${missingFields.join(', ')}`;\n}\n\nif (validationIssues.length > 0) {\n  if (validationReason) {\n    validationReason += ` | ${validationIssues.join(' | ')}`;\n  } else {\n    validationReason = validationIssues.join(' | ');\n  }\n}\n\nreturn {\n  json: {\n    ...data,\n    validation_status: 'Invalid',\n    missing_fields: missingFields,\n    validation_issues: validationIssues,\n    validation_reason: validationReason,\n    rejected_at: new Date().toISOString()\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        192
+      ],
+      "id": "fe8d57a5-000d-4979-8eb0-b9600f9293d4",
+      "name": "[DATA] Build Invalid Record"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_GOOGLE_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "AI Lead Qualification Database"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "REPLACE_WITH_LEADS_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "Leads"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "received_at": "={{ $json.received_at }}",
+            "client_name": "={{ $json.client_name }}",
+            "client_email": "={{ $json.client_email }}",
+            "company_name": "={{ $json.company_name }}",
+            "inquiry_message": "={{ $json.inquiry_message }}",
+            "project_type": "={{ $json.project_type }}",
+            "budget_amount": "={{ $json.budget_amount }}",
+            "budget_currency": "={{ $json.budget_currency }}",
+            "deadline": "={{ $json.deadline }}",
+            "requirements": "={{ $json.requirements }}",
+            "urgency": "={{ $json.urgency }}",
+            "lead_score": "={{ $json.lead_score }}",
+            "lead_quality": "={{ $json.lead_quality }}",
+            "score_reasons": "={{ $json.score_reasons.join(' | ') }}",
+            "lead_id": "={{ $json.lead_id }}",
+            "dedupe_key": "={{ $json.dedupe_key }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "lead_id",
+              "displayName": "lead_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "dedupe_key",
+              "displayName": "dedupe_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "received_at",
+              "displayName": "received_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "client_name",
+              "displayName": "client_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "client_email",
+              "displayName": "client_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "company_name",
+              "displayName": "company_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "inquiry_message",
+              "displayName": "inquiry_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "project_type",
+              "displayName": "project_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "budget_amount",
+              "displayName": "budget_amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "budget_currency",
+              "displayName": "budget_currency",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "deadline",
+              "displayName": "deadline",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "requirements",
+              "displayName": "requirements",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "urgency",
+              "displayName": "urgency",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "lead_score",
+              "displayName": "lead_score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "lead_quality",
+              "displayName": "lead_quality",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "score_reasons",
+              "displayName": "score_reasons",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2368,
+        96
+      ],
+      "id": "9c9d286e-b370-4464-be2f-26f593062cc8",
+      "name": "[STORAGE] Log Lead "
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.lead_quality }}",
+                    "rightValue": "Hot",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "c9e5d0d3-34bf-484f-8e33-46df6ba47f28"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Hot Lead"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "e79947f9-f490-4061-b97f-9f7883f29c38",
+                    "leftValue": "={{ $json.lead_quality }}",
+                    "rightValue": "Warm",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Warm Lead"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "85abf40e-46ed-4ca0-9311-6c88a3e667b9",
+                    "leftValue": "={{ $json.lead_quality }}",
+                    "rightValue": "Cold",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Cold Lead"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        3168,
+        32
+      ],
+      "id": "0cc4d452-1379-4fba-9aac-a3008b41135f",
+      "name": "[ROUTE] Lead by Quality"
+    },
+    {
+      "parameters": {
+        "sendTo": "owner@example.com",
+        "subject": "=🔥 HOT LEAD: {{ $json.client_name }} — {{ $json.project_type }}",
+        "emailType": "text",
+        "message": "=🔥 NEW HOT LEAD\n\nClient: {{ $json.client_name }}\nCompany: {{ $json.company_name }}\nEmail: {{ $json.client_email }}\n\nProject: {{ $json.project_type }}\nBudget: {{ $json.budget_amount }} {{ $json.budget_currency }}\nTimeline: {{ $json.deadline }}\nUrgency: {{ $json.urgency }}\n\nLead Score: {{ $json.lead_score }}/100\nLead Quality: {{ $json.lead_quality }}\n\nRequirements:\n{{ $json.requirements }}\n\nOriginal Inquiry:\n{{ $json.inquiry_message }}\n\nRecommended Action:\nReview the lead and follow up promptly.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        3392,
+        -144
+      ],
+      "id": "9959325d-e76e-4cf0-a2c9-2605c44d8133",
+      "name": "[NOTIFY] Hot Lead Alert"
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "days"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        3392,
+        48
+      ],
+      "id": "5bd6cf5e-db3b-4cba-b5a8-ce45e79dee4a",
+      "name": "[WAIT] Warm Lead Follow-Up"
+    },
+    {
+      "parameters": {
+        "sendTo": "owner@example.com",
+        "subject": "=⏰ WARM LEAD FOLLOW-UP: {{ $json.client_name }} — {{ $json.project_type }}",
+        "emailType": "text",
+        "message": "=⏰ WARM LEAD FOLLOW-UP REMINDER  Client: {{ $json.client_name }} Company: {{ $json.company_name }} Email: {{ $json.client_email }}  Project: {{ $json.project_type }} Budget: {{ $json.budget_amount }} {{ $json.budget_currency }} Timeline: {{ $json.deadline }}  Lead Score: {{ $json.lead_score }}/100 Lead Quality: {{ $json.lead_quality }}  Requirements: {{ $json.requirements }}  Original Inquiry: {{ $json.inquiry_message }}  Recommended Action: Review this lead and consider a follow-up if there has been no response or next step yet.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        3616,
+        48
+      ],
+      "id": "8b7338b3-f144-4a64-92b2-2d7bce7a5631",
+      "name": "[NOTIFY] Warm Lead Reminder"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_GOOGLE_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "AI Lead Qualification Database"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "REPLACE_WITH_NURTURE_QUEUE_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "Nurture Queue"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "added_at": "={{ $now.toISO() }}",
+            "client_name": "={{ $json.client_name }}",
+            "client_email": "={{ $json.client_email }}",
+            "company_name": "={{ $json.company_name }}",
+            "project_type": "={{ $json.project_type }}",
+            "lead_score": "={{ $json.lead_score }}",
+            "lead_quality": "={{ $json.lead_quality }}",
+            "requirements": "={{ $json.requirements }}",
+            "original_inquiry": "={{ $json.inquiry_message }}",
+            "next_action": "Keep for future follow-up / nurture"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "added_at",
+              "displayName": "added_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "client_name",
+              "displayName": "client_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "client_email",
+              "displayName": "client_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company_name",
+              "displayName": "company_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "project_type",
+              "displayName": "project_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "lead_score",
+              "displayName": "lead_score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "lead_quality",
+              "displayName": "lead_quality",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "requirements",
+              "displayName": "requirements",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "original_inquiry",
+              "displayName": "original_inquiry",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "next_action",
+              "displayName": "next_action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        3392,
+        240
+      ],
+      "id": "0cfb8555-86ff-48a8-a2c3-a66e0e31ded9",
+      "name": "[STORAGE] Nurture Queue"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "[TRIGGER] Receive Client Inquiry": {
+      "main": [
+        [
+          {
+            "node": "[DATA] Normalize Inquiry",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[MODEL] GPT-5 Mini": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "[AI] Extract Inquiry Details",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[AI] Extract Inquiry Details": {
+      "main": [
+        [
+          {
+            "node": "[DATA] Build Lead Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[DATA] Build Lead Record": {
+      "main": [
+        [
+          {
+            "node": "[LOGIC] Calculate Lead Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[LOGIC] Calculate Lead Score": {
+      "main": [
+        [
+          {
+            "node": "[STORAGE] Log Lead ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[AI] Generate Client Reply": {
+      "main": [
+        [
+          {
+            "node": "[DATA] Build Response Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[MODEL] GPT-5 Mini - Reply": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "[AI] Generate Client Reply",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[DATA] Build Response Record": {
+      "main": [
+        [
+          {
+            "node": "[EMAIL] Send Client Reply",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "[ROUTE] Lead by Quality",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[EMAIL] Send Client Reply": {
+      "main": [
+        []
+      ]
+    },
+    "[STORAGE] Check Existing Lead": {
+      "main": [
+        [
+          {
+            "node": "[VALIDATE] Duplicate Lead?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[DATA] Add Intake Metadata": {
+      "main": [
+        [
+          {
+            "node": "[STORAGE] Check Existing Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[DATA] Restore Intake Record": {
+      "main": [
+        [
+          {
+            "node": "[AI] Extract Inquiry Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[STORAGE] Log Invalid Submission": {
+      "main": [
+        [
+          {
+            "node": "[RESPONSE] Invalid Submission",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[DATA] Normalize Inquiry": {
+      "main": [
+        [
+          {
+            "node": "[VALIDATE]Required Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[VALIDATE]Required Fields": {
+      "main": [
+        [
+          {
+            "node": "[DATA] Add Intake Metadata",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "[DATA] Build Invalid Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[VALIDATE] Duplicate Lead?": {
+      "main": [
+        [
+          {
+            "node": "[RESPONSE] Duplicate Submission",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "[DATA] Restore Intake Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[DATA] Build Invalid Record": {
+      "main": [
+        [
+          {
+            "node": "[STORAGE] Log Invalid Submission",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[STORAGE] Log Lead ": {
+      "main": [
+        [
+          {
+            "node": "[AI] Generate Client Reply",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "[RESPONSE] Lead Accepted",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[ROUTE] Lead by Quality": {
+      "main": [
+        [
+          {
+            "node": "[NOTIFY] Hot Lead Alert",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "[WAIT] Warm Lead Follow-Up",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "[STORAGE] Nurture Queue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[WAIT] Warm Lead Follow-Up": {
+      "main": [
+        [
+          {
+            "node": "[NOTIFY] Warm Lead Reminder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "nodeGroups": [],
+  "tags": []
+}
