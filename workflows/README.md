@@ -1,52 +1,47 @@
 # n8n Workflow Exports
 
-The live n8n workflows are documented in this repository, but the exact account export is not committed by default because workflow JSON can contain account-specific identifiers, credential references, webhook information, and integration IDs.
+This folder contains **sanitized exports of the actual n8n workflows used for this portfolio project**.
 
-## Workflows
+## Files
 
-### Main
-AI Lead Qualification | Client Inquiry Automation
+- [main-workflow.sanitized.json](main-workflow.sanitized.json) — main client inquiry and lead qualification workflow
+- [error-handler.sanitized.json](error-handler.sanitized.json) — centralized workflow failure handler
 
-Core stages:
-- webhook intake
-- normalization
-- validation
-- invalid-submission logging
-- metadata generation
-- duplicate check
-- AI information extraction
-- lead scoring
-- lead storage
-- HTTP response
-- personalized reply generation
-- Gmail delivery
-- Hot/Warm/Cold routing
+## Sanitization Applied
 
-### Error Handler
-AI Lead Qualification | Error Handler
+Before committing the exports, account-specific and private values were removed or replaced, including:
 
-Core stages:
-- Error Trigger
-- error payload normalization
-- Gmail failure notification
+- n8n credential references
+- Gmail credential IDs
+- Google Sheets credential IDs
+- Google Spreadsheet IDs and cached URLs
+- fixed internal notification email addresses
+- webhook IDs
+- workflow/version/instance identifiers
+- error-workflow account linkage
+- account-specific tag IDs
 
-## Before Adding an Export
+The exports are also committed with `active: false`.
 
-Export the workflow from n8n, then sanitize:
-- credential IDs
-- webhook URLs
-- personal email addresses
-- Google Sheet IDs
-- account/workspace IDs
-- execution URLs
-- any real client data
+## Reconnecting After Import
 
-After sanitization, save suggested files as:
+After importing the workflows into another n8n workspace:
 
-~~~text
-workflows/
-├── main-workflow.sanitized.json
-└── error-handler.sanitized.json
-~~~
+1. Select your OpenAI credential for both model nodes.
+2. Select your Gmail credential for client and internal email nodes.
+3. Replace `owner@example.com` with the desired internal notification address.
+4. Select/create the Google Sheets document and the required tabs:
+   - Leads
+   - Invalid Submissions
+   - Nurture Queue
+5. Re-select the correct sheet in each Google Sheets node.
+6. Import the Error Handler workflow.
+7. In the main workflow settings, assign the imported Error Handler as the **Error Workflow**.
+8. Review the webhook path before publishing.
+9. Run the synthetic test cases before enabling the production webhook.
 
-Do not invent or hand-write a fake n8n export. Commit only an export produced by n8n and reviewed for privacy.
+## Important
+
+These files are intended as portfolio/reference exports. They contain the workflow logic and node structure, but **do not contain working credentials or the original private Google Sheet connection**.
+
+Never add real secrets or client data to the public versions.
