@@ -1,0 +1,32 @@
+{
+  "hot_lead": {
+    "client_name": "Jordan Lee",
+    "client_email": "jordan@example.com",
+    "company_name": "Atlas Studio",
+    "inquiry_message": "Hi, we need a five-page company website with services, case studies, testimonials, and a contact form. Our budget is $2,000 USD and we would like it completed within 6 weeks."
+  },
+  "warm_lead": {
+    "client_name": "Daniel Cruz",
+    "client_email": "daniel@example.com",
+    "company_name": "PixelFrame Studio",
+    "inquiry_message": "Hi, I need a simple portfolio website for my photography work. I would like a homepage, photo gallery, about section, and contact form. My budget is around 800, but I have no fixed deadline yet."
+  },
+  "cold_lead": {
+    "client_name": "Alex Rivera",
+    "client_email": "alex@example.com",
+    "company_name": "",
+    "inquiry_message": "Hi, I need a basic one-page website."
+  },
+  "invalid_missing_email": {
+    "client_name": "Test Invalid Client",
+    "client_email": "",
+    "company_name": "Sample Company",
+    "inquiry_message": "Hi, I need a website for my small business."
+  },
+  "invalid_email_format": {
+    "client_name": "Invalid Email Test",
+    "client_email": "hello",
+    "company_name": "Sample Studio",
+    "inquiry_message": "Hi, I need a simple business website with a contact form."
+  }
+}
