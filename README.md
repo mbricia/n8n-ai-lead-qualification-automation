@@ -1,164 +1,244 @@
 # AI-Powered Client Inquiry & Lead Qualification Automation
 
-An end-to-end n8n automation that receives client inquiries, validates and deduplicates submissions, uses AI to extract project requirements, calculates an explainable lead score, stores leads in Google Sheets, generates personalized email responses, and routes leads based on qualification level.
+An end-to-end **n8n** workflow that receives client inquiries, validates and deduplicates submissions, uses AI to extract project requirements, calculates an explainable lead score, stores leads in Google Sheets, generates personalized email replies, and routes leads based on qualification level.
 
-## Overview
+> **Portfolio project:** built to demonstrate practical workflow automation, AI-assisted data extraction, deterministic business logic, API/webhook handling, validation, deduplication, notifications, and error monitoring.
 
-This project automates the client inquiry and lead qualification process for digital service businesses.
+![Workflow Architecture](assets/workflow-architecture.svg)
 
-Instead of manually reviewing every inquiry, the workflow automatically:
+## What It Solves
 
-- Validates incoming form data
-- Rejects incomplete or invalid submissions
-- Prevents duplicate inquiries before AI processing
-- Extracts structured project details using AI
-- Calculates a deterministic lead score
-- Classifies leads as Hot, Warm, or Cold
-- Stores qualified leads in Google Sheets
-- Generates personalized client email responses
-- Sends immediate alerts for Hot leads
-- Schedules follow-up reminders for Warm leads
-- Stores Cold leads in a nurture queue
-- Logs invalid submissions for auditing
-- Returns appropriate HTTP responses for valid, invalid, and duplicate submissions
-- Monitors workflow failures using a separate error-handling workflow
+Manually reviewing every client inquiry takes time and makes it easy to miss high-value leads. This workflow automates the intake process while keeping critical business decisions explainable.
 
-## Built With
+It can:
 
-- **n8n** — workflow automation and orchestration
-- **OpenAI GPT-5 Mini** — inquiry extraction and personalized reply generation
-- **Google Sheets** — lead database, nurture queue, and validation logs
-- **Gmail** — client replies and internal notifications
-- **Webhooks** — incoming client inquiry endpoint
-- **JavaScript** — lead scoring, validation, metadata, and error processing
+- validate required inquiry fields and email format
+- reject invalid submissions before AI processing
+- prevent duplicate inquiries before any LLM call
+- extract structured project information from free-form messages
+- calculate a deterministic lead score from 0–100
+- classify leads as **Hot**, **Warm**, or **Cold**
+- log leads in Google Sheets
+- return clear HTTP responses for valid, invalid, and duplicate requests
+- generate personalized client replies
+- send immediate alerts for Hot leads
+- delay and remind the owner about Warm leads
+- store Cold leads in a nurture queue
+- log invalid submissions for auditing
+- retry safe external operations
+- trigger a separate workflow-failure alert when the main automation fails
 
-## Key Features
+## Tech Stack
 
-### Input Validation
-Checks required fields and validates email format before any AI processing occurs.
+| Tool | Purpose |
+| --- | --- |
+| **n8n** | Workflow orchestration |
+| **OpenAI GPT-5 Mini** | Inquiry extraction and personalized reply generation |
+| **Google Sheets** | Lead database, nurture queue, validation logs |
+| **Gmail** | Client replies and internal notifications |
+| **Webhooks** | External inquiry endpoint |
+| **JavaScript** | Validation support, scoring logic, metadata, error normalization |
 
-### Duplicate Prevention
-Creates a normalized deduplication key using the client's email and inquiry message. Duplicate inquiries are stopped before calling the AI model, reducing unnecessary API usage.
+## Architecture
 
-### AI-Powered Information Extraction
-Converts unstructured inquiry messages into structured information such as:
+The workflow is intentionally split into clear stages:
 
-- Project type
-- Budget amount
-- Currency
-- Timeline
-- Requirements
-- Urgency
+1. **Intake** — receive and normalize inquiry data
+2. **Validation** — verify required fields and email format
+3. **Protection** — add metadata and detect duplicates before AI usage
+4. **AI Processing** — extract structured project details
+5. **Qualification** — calculate an explainable score using deterministic rules
+6. **Storage** — log the lead to Google Sheets
+7. **Communication** — acknowledge the request and generate a personalized reply
+8. **Routing** — trigger different actions for Hot, Warm, and Cold leads
+9. **Monitoring** — notify the owner when a workflow execution fails
 
-### Explainable Lead Scoring
-Lead qualification is handled using deterministic JavaScript rules rather than allowing the AI model to decide whether a lead is good or bad.
+### High-Level Flow
 
-Each lead receives:
+~~~mermaid
+flowchart LR
+    A[Website / Client Form] --> B[Webhook Intake]
+    B --> C[Normalize Data]
+    C --> D{Valid Submission?}
+    D -- No --> E[Log Invalid Submission]
+    E --> F[HTTP 400]
+    D -- Yes --> G[Add Intake Metadata]
+    G --> H[Check Existing Lead]
+    H --> I{Duplicate?}
+    I -- Yes --> J[HTTP 200 Duplicate]
+    I -- No --> K[AI: Extract Inquiry Details]
+    K --> L[Build Lead Record]
+    L --> M[Deterministic Lead Scoring]
+    M --> N[Log Lead to Google Sheets]
+    N --> O[HTTP 202 Accepted]
+    N --> P[AI: Generate Client Reply]
+    P --> Q[Send Client Email]
+    P --> R{Lead Quality}
+    R -- Hot --> S[Immediate Hot Lead Alert]
+    R -- Warm --> T[Wait 1 Day]
+    T --> U[Warm Lead Reminder]
+    R -- Cold --> V[Nurture Queue]
+~~~
 
-- A score from `0–100`
-- A qualification of `Hot`, `Warm`, or `Cold`
-- A list of reasons explaining the score
+A separate error workflow monitors unhandled execution failures:
 
-### Personalized Client Responses
-AI generates a professional reply based on the client's actual project details, budget, timeline, and lead classification.
+~~~mermaid
+flowchart LR
+    A[Workflow Failure] --> B[Error Trigger]
+    B --> C[Build Error Alert]
+    C --> D[Send Failure Notification]
+~~~
 
-### Smart Lead Routing
+## Lead Scoring
 
-**Hot Lead**
-- Client receives a personalized response
-- Business owner receives an immediate priority alert
+AI interprets the inquiry, but **AI does not decide whether the lead is good or bad**.
 
-**Warm Lead**
-- Client receives a personalized response
-- Workflow waits one day
-- Business owner receives a follow-up reminder
+Lead quality is calculated with deterministic JavaScript rules:
 
-**Cold Lead**
-- Client receives a personalized response
-- Lead is added to a nurture queue for future follow-up
+| Signal | Points |
+| --- | ---: |
+| Complete contact information | +10 |
+| Clear project type | +25 |
+| Budget amount provided | +15 |
+| Budget currency provided | +10 |
+| Project timeline provided | +20 |
+| Detailed requirements | +20 |
+| **Maximum** | **100** |
 
-### Error Monitoring
-A separate n8n error-handling workflow captures failed executions and sends an internal alert containing:
+Classification:
 
-- Workflow name
-- Failed node
-- Error message
-- Execution ID
-- Execution link
-- Failure timestamp
+~~~text
+80–100  → Hot
+50–79   → Warm
+0–49    → Cold
+~~~
+
+The workflow stores the reasons behind the score, making qualification explainable and easier to audit.
+
+## Lead Routing
+
+### Hot Lead
+- client receives a personalized email
+- owner receives an immediate priority alert
+- alert includes project details, lead score, requirements, and original inquiry
+
+### Warm Lead
+- client receives a personalized email
+- workflow waits one day
+- owner receives a follow-up reminder
+
+### Cold Lead
+- client receives a personalized email
+- lead is stored in a separate nurture queue for future outreach
 
 ## API Responses
 
-The webhook returns different responses depending on the submission:
-
-| Scenario | HTTP Status | Result |
+| Scenario | HTTP Status | Behavior |
 | --- | --- | --- |
-| Valid new inquiry | `202 Accepted` | Lead accepted and processing continues |
-| Duplicate inquiry | `200 OK` | Existing inquiry detected and processing stops |
-| Invalid submission | `400 Bad Request` | Missing or invalid fields are reported |
+| Valid new inquiry | 202 Accepted | Lead is accepted and downstream processing continues |
+| Duplicate inquiry | 200 OK | Existing inquiry is detected; AI and downstream actions are skipped |
+| Invalid submission | 400 Bad Request | Missing or malformed input is logged and reported |
+
+## Duplicate Prevention
+
+A normalized deduplication key is generated from the client email plus the normalized inquiry message.
+
+The lead database is checked **before the AI extraction step**. Repeated submissions stop early, helping prevent duplicate spreadsheet rows, emails, notifications, and unnecessary AI/API usage.
+
+## Validation
+
+The workflow checks that the client name, client email, and inquiry message are present, and that the email matches a basic format.
+
+Invalid submissions are logged to a dedicated sheet with missing fields, validation issues, validation reason, and rejection timestamp.
+
+## Reliability & Error Handling
+
+Safe read/generation operations use retry-on-failure where appropriate.
+
+A separate n8n error workflow captures unhandled failures and creates an internal alert containing:
+
+- workflow name
+- failed node
+- error message
+- execution ID
+- execution link
+- failure mode
+- timestamp
+
+Write/send actions are handled conservatively to reduce the risk of duplicate rows or duplicate emails.
+
+## Example Outputs
+
+### Personalized Client Reply
+
+![Personalized Client Reply](assets/client-reply-example.svg)
+
+### Hot Lead Internal Alert
+
+![Hot Lead Alert](assets/hot-lead-alert-example.svg)
+
+### Error Handler
+
+![Error Handler](assets/error-handler.svg)
+
+## Repository Structure
+
+~~~text
+n8n-ai-lead-qualification-automation/
+├── README.md
+├── SECURITY.md
+├── assets/
+│   ├── workflow-architecture.svg
+│   ├── client-reply-example.svg
+│   ├── hot-lead-alert-example.svg
+│   └── error-handler.svg
+├── docs/
+│   ├── ARCHITECTURE.md
+│   ├── TESTING.md
+│   ├── DEMO.md
+│   ├── CASE-STUDY.md
+│   ├── PORTFOLIO-COPY.md
+│   └── INTERVIEW-NOTES.md
+├── sample-data/
+│   └── test-payloads.json
+└── workflows/
+    └── README.md
+~~~
+
+## Tested Scenarios
+
+The workflow was tested with controlled sample data for successful Hot lead processing, Warm lead delayed follow-up, Cold lead nurture routing, missing required fields, invalid email format, duplicate blocking, HTTP responses, workflow failure alerts, and client reply delivery to a separate test inbox.
+
+See [docs/TESTING.md](docs/TESTING.md) for the test matrix.
+
+## Security & Privacy
+
+This repository intentionally excludes API keys, credentials, OAuth secrets, private webhook URLs, real client records, personal test email addresses, and account-specific n8n identifiers.
+
+All names, companies, email addresses, and examples in the documentation are synthetic demo data.
+
+See [SECURITY.md](SECURITY.md).
 
 ## AI-Assisted Development
 
 This project was developed with AI-assisted guidance for planning, debugging, documentation, and reviewing implementation decisions.
 
-The workflow itself was manually configured, tested, debugged, and validated in n8n, including:
+The workflow itself was manually configured, tested, debugged, and validated in n8n, including node configuration, data mapping, JavaScript business logic, lead-scoring rules, conditional routing, webhook/API testing, integrations, failure handling, and production smoke testing.
 
-- Node configuration
-- Data mapping
-- JavaScript business logic
-- Lead-scoring rules
-- Conditional routing
-- API/webhook testing
-- Google Sheets integration
-- Gmail integration
-- Error handling
-- Production testing
-
-
-
-## Architecture
-
-The automation follows a layered workflow designed to validate, protect, process, qualify, and respond to client inquiries while minimizing unnecessary AI usage.
-
-![Workflow Architecture](assets/workflow-architecture.png)
-
-### High-Level Flow
-
-```text
-Client / Website Form
-        ↓
-Webhook Intake
-        ↓
-Normalize Data
-        ↓
-Validate Submission
-   ┌───────────────┴───────────────┐
- Invalid                         Valid
-    ↓                              ↓
-Log Invalid                  Add Metadata
-Submission                        ↓
-    ↓                        Duplicate Check
-HTTP 400                  ┌───────┴────────┐
-                      Duplicate          New Lead
-                          ↓                  ↓
-                      HTTP 200         AI Extraction
-                                             ↓
-                                      Build Lead Record
-                                             ↓
-                                      Calculate Lead Score
-                                             ↓
-                                      Google Sheets
-                                      ↙            ↘
-                                HTTP 202        AI Reply
-                                                  ↓
-                                             Client Email
-                                                  ↓
-                                          Lead Quality Routing
-                                      ┌────────┼────────┐
-                                     Hot      Warm      Cold
-                                      ↓         ↓         ↓
-                                 Priority    Wait     Nurture
-                                   Alert     1 Day      Queue
-                                               ↓
-                                            Reminder
 AI is also intentionally used **inside the finished automation** for information extraction and personalized response generation, while critical business decisions such as lead scoring and routing remain rule-based and explainable.
+
+## Documentation
+
+- [Architecture & design decisions](docs/ARCHITECTURE.md)
+- [Testing strategy and test matrix](docs/TESTING.md)
+- [Demo walkthrough](docs/DEMO.md)
+- [Project case study](docs/CASE-STUDY.md)
+- [Portfolio / CV copy](docs/PORTFOLIO-COPY.md)
+- [Interview talking points](docs/INTERVIEW-NOTES.md)
+- [Workflow export notes](workflows/README.md)
+
+## Current Status
+
+**Version 1: complete and tested.**
+
+The core workflow is intentionally frozen after end-to-end production testing so the project remains focused and explainable instead of accumulating unnecessary features.
