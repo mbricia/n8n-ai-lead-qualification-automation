@@ -1,0 +1,23 @@
+# Secrets and environment files
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials*
+secrets*
+
+# Local/private workflow exports
+workflows/private/
+workflows/*-private.json
+workflows/*-raw.json
+
+# Local test data
+sample-data/private/
+*.local.json
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
