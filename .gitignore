@@ -4,8 +4,14 @@
 !.env.example
 *.pem
 *.key
+*.pfx
+*.p12
 credentials*
 secrets*
+google-services.json
+GoogleService-Info.plist
+service-account*.json
+service_account*.json
 
 # Local/private workflow exports
 workflows/private/
